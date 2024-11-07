@@ -1,8 +1,10 @@
 using System.Collections;
 using System.Collections.Generic;
+using Unity.VisualScripting;
 using UnityEngine;
+using UnityEngine.EventSystems;
 
-public class ButtonController : MonoBehaviour
+public class ButtonController : MonoBehaviour,IPointerEnterHandler, IPointerExitHandler
 {
     public AudioSource audioSource;
     public Camera cam;
@@ -36,11 +38,6 @@ public class ButtonController : MonoBehaviour
         switch (currentState)
         {
             case ButtonState.Deselected:
-                if (IsMouseOverButton())
-                {
-                    switchtoState(ButtonState.Selected);
-                    break;
-                }
                 if (transitionActive)
                 {
                     updateAnimator(false,false);
@@ -63,15 +60,13 @@ public class ButtonController : MonoBehaviour
         }
     }
     // Detect if the mouse is on the button
-    private bool IsMouseOverButton()
+    public void OnPointerEnter(PointerEventData eventData)
     {
-        RectTransform rectTransform = GetComponent<RectTransform>();
-        localMousePosition = Input.mousePosition;
-        //RectTransformUtility.ScreenPointToLocalPointInRectangle(
-        //    rectTransform, Input.mousePosition, cam, out localMousePosition);
-        //Vector2 vc = new Vector2(0, 0);
-        //Debug.Log(rectTransform.rect.Contains(vc));
-        return rectTransform.rect.Contains(localMousePosition);
+        switchtoState(ButtonState.Selected);
+    }
+    public void OnPointerExit(PointerEventData eventData)
+    {
+        switchtoState(ButtonState.Deselected);
     }
     
     private void switchtoState(ButtonState newState)
