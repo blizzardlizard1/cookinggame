@@ -1,2 +1,0 @@
-C:\Users\13741\Documents\cookinggame\obj\Debug\Assembly-CSharp.csproj.AssemblyReference.cache
-C:\Users\13741\Documents\cookinggame\obj\Debug\Assembly-CSharp.csproj.CoreCompileInputs.cache
