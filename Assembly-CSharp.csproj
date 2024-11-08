@@ -42,15 +42,15 @@
   </PropertyGroup>
   <ItemGroup>
      <Compile Include="Assets\Scripts\LevelManager.cs" />
+     <Compile Include="Assets\Asset\Brick Project Studio\_BPS Basic Assets\Common\Scripts and Animations\Doors\opencloseStallDoor.cs" />
      <Compile Include="Assets\Scripts\OrderingManager.cs" />
      <Compile Include="Assets\Scripts\PlayerController.cs" />
      <Compile Include="Assets\Scripts\CustomerController.cs" />
      <Compile Include="Assets\Scripts\GUIManager.cs" />
      <Compile Include="Assets\Scripts\RestaurantManager.cs" />
-     <Compile Include="Assets\Scripts\ButtonController.cs" />
-     <Compile Include="Assets\Asset\Brick Project Studio\_BPS Basic Assets\Common\Scripts and Animations\Doors\opencloseStallDoor.cs" />
-     <Compile Include="Assets\Asset\Brick Project Studio\_BPS Basic Assets\Common\Scripts and Animations\Doors\opencloseDoor1.cs" />
      <Compile Include="Assets\Asset\Brick Project Studio\_BPS Basic Assets\Common\Scripts and Animations\Doors\opencloseDoor.cs" />
+     <Compile Include="Assets\Asset\Brick Project Studio\_BPS Basic Assets\Common\Scripts and Animations\Doors\opencloseDoor1.cs" />
+     <Compile Include="Assets\Scripts\ButtonController.cs" />
      <Folder Include="Assets" />
      <None Include="Assets\TextMesh Pro\Shaders\TMPro.cginc" />
      <Folder Include="Assets\Asset\Brick Project Studio\_BPS Basic Assets\_Prefabs\Basic Asset\BA Build Kit" />
