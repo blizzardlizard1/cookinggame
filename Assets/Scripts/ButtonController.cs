@@ -3,13 +3,12 @@ using System.Collections.Generic;
 using Unity.VisualScripting;
 using UnityEngine;
 using UnityEngine.EventSystems;
+using UnityEngine.SceneManagement;
 
-public class ButtonController : MonoBehaviour,IPointerEnterHandler, IPointerExitHandler
+public class ButtonController : MonoBehaviour,IPointerEnterHandler, IPointerExitHandler,IPointerClickHandler 
 {
     public AudioSource audioSource;
-    public Camera cam;
     
-    [SerializeField] 
     private Vector2 localMousePosition;
     [SerializeField] 
     private Animator animator;
@@ -17,6 +16,7 @@ public class ButtonController : MonoBehaviour,IPointerEnterHandler, IPointerExit
     private ButtonState currentState;
 
     private bool transitionActive;
+    private bool onButton;
     
     private enum ButtonState
     {
@@ -40,6 +40,7 @@ public class ButtonController : MonoBehaviour,IPointerEnterHandler, IPointerExit
             case ButtonState.Deselected:
                 if (transitionActive)
                 {
+                    onButton = false;
                     updateAnimator(false,false);
                     transitionActive = false;
                 }
@@ -47,6 +48,7 @@ public class ButtonController : MonoBehaviour,IPointerEnterHandler, IPointerExit
             case ButtonState.Selected:
                 if (transitionActive)
                 {
+                    onButton = true;
                     updateAnimator(true,false);
                     transitionActive = false;
                 }
@@ -55,10 +57,22 @@ public class ButtonController : MonoBehaviour,IPointerEnterHandler, IPointerExit
                 if (transitionActive)
                 {
                     transitionActive = false;
+                    updateAnimator(true,true);
                 }
+
+                if (this.transform.name == "StartButton")
+                {
+                    SceneManager.LoadScene("MainScene");
+                }
+                else if (this.transform.name == "QuitButton")
+                {
+                    Application.Quit();
+                }
+
                 break;
         }
     }
+
     // Detect if the mouse is on the button
     public void OnPointerEnter(PointerEventData eventData)
     {
@@ -68,7 +82,15 @@ public class ButtonController : MonoBehaviour,IPointerEnterHandler, IPointerExit
     {
         switchtoState(ButtonState.Deselected);
     }
-    
+
+    public void OnPointerClick(PointerEventData eventData)
+    {
+        if (onButton)
+        {
+            switchtoState(ButtonState.Pressed);
+        }
+    }
+
     private void switchtoState(ButtonState newState)
     {
         transitionActive = true;
