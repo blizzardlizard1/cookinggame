@@ -1,62 +1,53 @@
 using UnityEngine;
 
+[RequireComponent(typeof(Rigidbody))]
+[RequireComponent(typeof(Animator))]
 public class PlayerController : MonoBehaviour
 {
-    public float moveSpeed = 5f; // Movement speed
-    public LayerMask pathLayer; // Layer for paths the player can move through
-    public float rotationSpeed = 10f; // Speed of rotation
+    public float moveSpeed = 5f;
 
-    private Vector3 moveDirection;
     private Rigidbody rb;
+    private Animator animator;
+    private Vector3 movement;
 
     void Start()
     {
+        // Get references to the Rigidbody and Animator components
         rb = GetComponent<Rigidbody>();
-        rb.isKinematic = false; // Ensure Rigidbody works with physics
-        rb.useGravity = false;  // Disable gravity for free movement
-        rb.constraints = RigidbodyConstraints.FreezeRotation; // Prevent unwanted rotations
+        animator = GetComponent<Animator>();
     }
 
     void Update()
     {
-        HandleMovementInput();
+        // Get input for movement (WASD or Arrow Keys)
+        float moveX = Input.GetAxisRaw("Horizontal");
+        float moveZ = Input.GetAxisRaw("Vertical");
+
+        // Combine input into a movement vector
+        movement = new Vector3(moveX, 0f, moveZ).normalized;
+
+        // Set animator parameters for movement
+        animator.SetFloat("MoveX", moveX);
+        animator.SetFloat("MoveZ", moveZ);
+        animator.SetBool("IsMoving", movement.magnitude > 0);
     }
 
     void FixedUpdate()
     {
-        MovePlayer();
-        RotatePlayer();
-    }
+        // Move the player
+        rb.velocity = movement * moveSpeed;
 
-    void HandleMovementInput()
-    {
-        // Capture 8-directional movement input
-        float horizontal = Input.GetAxis("Horizontal");
-        float vertical = Input.GetAxis("Vertical");
-
-        moveDirection = new Vector3(horizontal, 0, vertical).normalized;
-    }
-
-    void MovePlayer()
-    {
-        // Check if the player is moving along a valid path
-        RaycastHit hit;
-        Vector3 targetPosition = rb.position + moveDirection * moveSpeed * Time.fixedDeltaTime;
-
-        // Perform a raycast to ensure the target position is on a valid path
-        if (Physics.Raycast(targetPosition + Vector3.up * 0.5f, Vector3.down, out hit, 1f, pathLayer))
+        // Rotate the player to face movement direction
+        if (movement.magnitude > 0)
         {
-            rb.MovePosition(targetPosition);
+            Quaternion targetRotation = Quaternion.LookRotation(movement, Vector3.up);
+            rb.rotation = Quaternion.Slerp(rb.rotation, targetRotation, Time.deltaTime * 10f);
         }
     }
 
-    void RotatePlayer()
+    private void OnCollisionEnter(Collision collision)
     {
-        // Rotate the player to face the movement direction
-        if (moveDirection != Vector3.zero)
-        {
-            Quaternion targetRotation = Quaternion.LookRotation(moveDirection);
-            rb.MoveRotation(Quaternion.Slerp(rb.rotation, targetRotation, Time.fixedDeltaTime * rotationSpeed));
-        }
+        // Log collisions (optional)
+        Debug.Log($"Collided with: {collision.gameObject.name}");
     }
 }
