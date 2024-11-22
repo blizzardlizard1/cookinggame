@@ -1,6 +1,7 @@
 using System.Collections;
 using System.Collections.Generic;
 using Unity.VisualScripting;
+using UnityEditor.SceneManagement;
 using UnityEngine;
 using UnityEngine.AI;
 using UnityEngine.UIElements;
@@ -31,7 +32,8 @@ public class CustomerController : MonoBehaviour
     
     // Customer Walking
     public float customerLocation; //Need to connect to RestaurantManager.table
-    
+
+    public Vector3 TablePos;
     // Customer Ordering 
     //public Order currentOrder;
     
@@ -39,17 +41,17 @@ public class CustomerController : MonoBehaviour
     // Start is called before the first frame update
     void Start()
     {
-        agent = GetComponent<NavMeshAgent>();
+      
         //agent.speed = 2f;
         currentPatience = basePatience;
-        customerState = CustomerState.WaitingForSeat;
+       // customerState = CustomerState.WaitingForSeat;
     }
 
     // Update is called once per frame
     void Update()
     {
         UpdatePatience();
-        UpdateState();
+       
     }
 
     private void UpdatePatience()
@@ -64,12 +66,15 @@ public class CustomerController : MonoBehaviour
         }
     }
 
-    private void UpdateState()
+    public void UpdateState()
     {
+
         switch (customerState)
         {
             //case CustomerState.WaitingForSeat
-            //case CustomerState.Walking
+            case CustomerState.Walking:
+              StartCoroutine(MoveTo());
+                break;
             //case CustomerState.Seated
             //case CustomerState.OrderingFood
             //case CustomerState.WaitingForFood
@@ -80,10 +85,31 @@ public class CustomerController : MonoBehaviour
         }
     }
 
-    public void MoveTo()
+   IEnumerator MoveTo()
     {
+        if (agent==null) 
+        {
+            agent = this.GetComponent<NavMeshAgent>();
+        }
+        agent.SetDestination(TablePos);
         //Customer move to certain place.
         //Need to coordinate with RestaurantManager status
+        while (true) 
+        {
+            if(Vector3.Distance(this.transform.position, TablePos)<0.15f)
+            {
+                break;
+            }
+
+            agent.SetDestination(TablePos);
+            yield return new  WaitForSeconds(1);
+        }
+
+
+        customerState = CustomerState.Seated;
+        UpdateState();
+
+
     }
 
 }
