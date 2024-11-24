@@ -7,12 +7,18 @@ public class PlayerController : MonoBehaviour
     public float moveSpeed = 5f;
     public GameObject handObject; // Reference to the player's hand object where the menu item will be placed
     public GameObject[] menuItems; // Array of menu items (Small, Medium, Large prefabs)
-
+    public OrderingManager orderingManager; // Reference to the ordering system
     private Rigidbody rb;
     private Animator animator;
     private Vector3 movement;
     private bool isMenuActive = false; // To track if the menu is currently displayed
     private string servingStationTag = "Serving Station"; // Tag or name to identify the serving station
+    private string npcTag = "NPC"; // Tag to identify NPCs
+    private bool isHoldingFood = false; // Track if the player is holding food
+    private bool hasExitedZone = true; // Track if the player has exited the serving zone
+    private float menuCooldown = 1f; // Cooldown duration in seconds
+    private float lastMenuTime = -1f; // Time the menu was last opened
+
 
     void Start()
     {
@@ -42,12 +48,16 @@ public class PlayerController : MonoBehaviour
         {
             // Move the player
             rb.velocity = movement * moveSpeed;
-
+    
             // Rotate the player to face movement direction
             if (movement.magnitude > 0)
             {
                 Quaternion targetRotation = Quaternion.LookRotation(movement, Vector3.up);
                 rb.rotation = Quaternion.Slerp(rb.rotation, targetRotation, Time.deltaTime * 10f);
+            }
+            else
+            {
+                rb.angularVelocity = Vector3.zero; // Stop unintended rotation
             }
         }
         else
@@ -56,12 +66,32 @@ public class PlayerController : MonoBehaviour
         }
     }
 
+
     private void OnCollisionEnter(Collision collision)
     {
-        // Check if collided with "Serving Station"
-        if (collision.gameObject.name == servingStationTag || collision.gameObject.CompareTag(servingStationTag))
+        if (collision.gameObject.CompareTag(servingStationTag) && hasExitedZone)
         {
-            isMenuActive = true; // Activate the menu
+            // Check cooldown
+            if (Time.time > lastMenuTime + menuCooldown)
+            {
+                isMenuActive = true; // Activate the menu
+                lastMenuTime = Time.time; // Update the last menu activation time
+            }
+
+            hasExitedZone = false; // Player has entered the zone
+        }
+
+        if (collision.gameObject.CompareTag(npcTag) && isHoldingFood)
+        {
+            DeliverOrder(collision.gameObject); // Deliver the order to the NPC
+        }
+    }
+
+    private void OnCollisionExit(Collision collision)
+    {
+        if (collision.gameObject.CompareTag(servingStationTag))
+        {
+            hasExitedZone = true; // Mark that the player has exited the serving station
         }
     }
 
@@ -93,12 +123,48 @@ public class PlayerController : MonoBehaviour
     {
         if (index >= 0 && index < menuItems.Length)
         {
-            // Instantiate the selected menu item and place it in the player's hand
+            // Instantiate the selected menu item
             GameObject menuItem = Instantiate(menuItems[index], handObject.transform.position, Quaternion.identity);
-            menuItem.transform.SetParent(handObject.transform); // Attach it to the player's hand
+    
+            // Disable Rigidbody and set Collider to Trigger (if present)
+            Rigidbody foodRigidbody = menuItem.GetComponent<Rigidbody>();
+            if (foodRigidbody != null)
+            {
+                Destroy(foodRigidbody); // Remove the Rigidbody component
+            }
+    
+            Collider foodCollider = menuItem.GetComponent<Collider>();
+            if (foodCollider != null)
+            {
+                foodCollider.isTrigger = true; // Ensure the collider is a trigger
+            }
+    
+            // Attach it to the player's hand
+            menuItem.transform.SetParent(handObject.transform, true);
+            isHoldingFood = true; // Mark that the player is holding food
+        }
+    
+        isMenuActive = false; // Deactivate the menu after selection
+    }
+
+
+    private void DeliverOrder(GameObject npc)
+    {
+        // Notify the ordering system
+        if (orderingManager != null)
+        {
+            orderingManager.isComplete = true; // Mark the order as complete
+            orderingManager.CalculateTip(); // Calculate the tip
         }
 
-        isMenuActive = false; // Deactivate the menu after selection
+        // Clear the player's hand
+        foreach (Transform child in handObject.transform)
+        {
+            Destroy(child.gameObject);
+        }
+
+        isHoldingFood = false; // No longer holding food
+        Debug.Log("Order delivered to NPC: " + npc.name);
     }
 }
 
