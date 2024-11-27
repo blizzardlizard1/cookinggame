@@ -19,7 +19,6 @@ public class PlayerController : MonoBehaviour
     private float menuCooldown = 1f; // Cooldown duration in seconds
     private float lastMenuTime = -1f; // Time the menu was last opened
 
-
     void Start()
     {
         // Get references to the Rigidbody and Animator components
@@ -36,10 +35,11 @@ public class PlayerController : MonoBehaviour
         // Combine input into a movement vector
         movement = new Vector3(moveX, 0f, moveZ).normalized;
 
-        // Set animator parameters for movement
-        animator.SetFloat("MoveX", moveX);
-        animator.SetFloat("MoveZ", moveZ);
-        animator.SetBool("IsMoving", movement.magnitude > 0);
+        // Check if the player is walking
+        bool isWalking = movement.magnitude > 0;
+
+        // Set animator parameter for walking
+        animator.SetBool("IsWalking", isWalking);
     }
 
     void FixedUpdate()
@@ -48,7 +48,7 @@ public class PlayerController : MonoBehaviour
         {
             // Move the player
             rb.velocity = movement * moveSpeed;
-    
+
             // Rotate the player to face movement direction
             if (movement.magnitude > 0)
             {
@@ -65,7 +65,6 @@ public class PlayerController : MonoBehaviour
             rb.velocity = Vector3.zero; // Stop player movement when the menu is active
         }
     }
-
 
     private void OnCollisionEnter(Collision collision)
     {
@@ -125,28 +124,27 @@ public class PlayerController : MonoBehaviour
         {
             // Instantiate the selected menu item
             GameObject menuItem = Instantiate(menuItems[index], handObject.transform.position, Quaternion.identity);
-    
+
             // Disable Rigidbody and set Collider to Trigger (if present)
             Rigidbody foodRigidbody = menuItem.GetComponent<Rigidbody>();
             if (foodRigidbody != null)
             {
                 Destroy(foodRigidbody); // Remove the Rigidbody component
             }
-    
+
             Collider foodCollider = menuItem.GetComponent<Collider>();
             if (foodCollider != null)
             {
                 foodCollider.isTrigger = true; // Ensure the collider is a trigger
             }
-    
+
             // Attach it to the player's hand
             menuItem.transform.SetParent(handObject.transform, true);
             isHoldingFood = true; // Mark that the player is holding food
         }
-    
+
         isMenuActive = false; // Deactivate the menu after selection
     }
-
 
     private void DeliverOrder(GameObject npc)
     {
