@@ -118,51 +118,51 @@ public class PlayerController : MonoBehaviour
         }
     }
 
+    private int FoodType;
+
+    private GameObject FoodItemOnHand;
     private void PlaceMenuItem(int index)
     {
         if (index >= 0 && index < menuItems.Length)
         {
+            FoodType = index;
+
+            if (FoodItemOnHand!=null) 
+            {
+                Destroy(FoodItemOnHand);
+            }
+
             // Instantiate the selected menu item
-            GameObject menuItem = Instantiate(menuItems[index], handObject.transform.position, Quaternion.identity);
-
-            // Disable Rigidbody and set Collider to Trigger (if present)
-            Rigidbody foodRigidbody = menuItem.GetComponent<Rigidbody>();
-            if (foodRigidbody != null)
-            {
-                Destroy(foodRigidbody); // Remove the Rigidbody component
-            }
-
-            Collider foodCollider = menuItem.GetComponent<Collider>();
-            if (foodCollider != null)
-            {
-                foodCollider.isTrigger = true; // Ensure the collider is a trigger
-            }
+            FoodItemOnHand = Instantiate(menuItems[index], handObject.transform.position, Quaternion.identity);
 
             // Attach it to the player's hand
-            menuItem.transform.SetParent(handObject.transform, true);
+            FoodItemOnHand.transform.SetParent(handObject.transform, true);
             isHoldingFood = true; // Mark that the player is holding food
         }
 
         isMenuActive = false; // Deactivate the menu after selection
     }
 
+    // modified for function fix
     private void DeliverOrder(GameObject npc)
     {
         // Notify the ordering system
         if (orderingManager != null)
         {
-            orderingManager.isComplete = true; // Mark the order as complete
-            orderingManager.CalculateTip(); // Calculate the tip
+            orderingManager.isComplete = true; // Mark the order as complete           
         }
 
-        // Clear the player's hand
-        foreach (Transform child in handObject.transform)
+        CustomerController customer = npc.GetComponent<CustomerController>();
+        if (customer != null) 
         {
-            Destroy(child.gameObject);
+            if (customer.GetFood(FoodType)) 
+            {
+                // Clear the player's hand
+                Destroy(FoodItemOnHand);              
+                isHoldingFood = false; // No longer holding food
+                Debug.Log("Order delivered to NPC: " + npc.name);
+            }
         }
-
-        isHoldingFood = false; // No longer holding food
-        Debug.Log("Order delivered to NPC: " + npc.name);
     }
 }
 

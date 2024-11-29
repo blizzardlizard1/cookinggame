@@ -1,91 +1,95 @@
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.Serialization;
 
 public class RestaurantManager : MonoBehaviour
 {
-    // a queue of waiting customers
-    // FUNCTION: Add one of the waiting customer to an available seat
-    // FUNCTION: Remove one seated customer from the seat
-    // FUNCTION: Manage the waitingCustomer queue
-
-    public class Tablestate 
+    public static RestaurantManager Instance;
+    private void Awake()
     {
-        public Vector3 TeablePos;
-        public bool HaaCustomer;
+        Instance = this;
     }
 
-    public CustomerController CustomerPerfab;
+    public class TableState 
+    {
+        public Transform TablePos;
+        public bool HasCustomer;
+    }
 
-    public List<Tablestate> Tablestates = new List<Tablestate> ();
+    public List<CustomerController> CustomerPerfab;
+
+    public List<TableState> TableStates = new List<TableState> ();
 
     public List<Transform> TablePos;
 
     public bool ControlCustomerLoad = true;
 
-    public Transform CustomOriginpos;
-    // Start is called before the first frame update
+    public Transform CustomOriginPos;
+
     void Start()
     {
         foreach (var t in TablePos) 
         {
-            Tablestate newTable= new Tablestate ();
-            newTable.TeablePos = t.transform.position;
-            newTable.HaaCustomer = false;
+            TableState newTable= new TableState ();
+            newTable.TablePos = t.transform;
+            newTable.HasCustomer = false;
 
-            Tablestates.Add (newTable);
+            TableStates.Add(newTable);
         }
 
         StartCoroutine(LoadCustomer());
     }
-
-    // Update is called once per frame
+    
     void Update()
     {
         
     }
-
-    public Vector3 GetCustomPos() 
+    public int TableIndex;
+    public Transform GetCustomPos() 
     {
        
-        for (int i=0;i< Tablestates.Count;i++) 
+        for (int i = 0; i< TableStates.Count; i++) 
         {
-            if (!Tablestates[i].HaaCustomer) 
+            if (!TableStates[i].HasCustomer) 
             {
-                Tablestates[i].HaaCustomer = true;
-
-                return Tablestates[i].TeablePos;
+                TableStates[i].HasCustomer = true;
+                TableIndex = i + 1;
+                return TableStates[i].TablePos;
             }
         }
-       
-
-        return CustomOriginpos.position;
+        return CustomOriginPos;
     }
-
+    
+    public void ResetTableState(int tableindex) 
+    {
+        TableStates[tableindex - 1].HasCustomer = false;
+    }
     IEnumerator LoadCustomer() 
     {
+        yield return new WaitForSeconds(1);
         while (ControlCustomerLoad) 
-        {
-        
-            yield return new WaitForSeconds(5);
+        { 
+            yield return new WaitForSeconds(LevelManager.Instance.CustomerGeneratingTime); 
+            int TmpCustomerIndex = Random.Range(0, CustomerPerfab.Count);
 
-            CustomerController NewcustomerPerfab = Instantiate(CustomerPerfab);
+            CustomerController NewCustomerPerfab = Instantiate(CustomerPerfab[TmpCustomerIndex]);
 
-            NewcustomerPerfab.transform.position = CustomOriginpos.position;
+            NewCustomerPerfab.transform.position = CustomOriginPos.position;
 
-            Vector3 pos = GetCustomPos();
+            Transform pos = GetCustomPos();
 
-            if (pos == CustomOriginpos.position)
+            if (pos == CustomOriginPos)
             {
-                NewcustomerPerfab.customerState = CustomerController.CustomerState.WaitingForSeat;
+                NewCustomerPerfab.customerState = CustomerController.CustomerState.WaitingForSeat;
             }
             else 
             {
-                NewcustomerPerfab.customerState = CustomerController.CustomerState.Walking;
+                NewCustomerPerfab.customerState = CustomerController.CustomerState.Walking;
 
-                NewcustomerPerfab.TablePos = pos;
-
-                NewcustomerPerfab.UpdateState();
+                NewCustomerPerfab.TablePos = pos;
+                NewCustomerPerfab.TableIndex = TableIndex;
+                NewCustomerPerfab.UpdateState();
             }
 
         }
