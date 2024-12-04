@@ -446,6 +446,8 @@ MonoBehaviour:
   - {fileID: 21300000, guid: bd5b35a92aba924428c52b9d44aa41fa, type: 3}
   - {fileID: 21300000, guid: 3a596da42fc2ccf408b55fd9b2def0cd, type: 3}
   - {fileID: 21300000, guid: 0bb42e31f0559064eacdeed059530a09, type: 3}
+  munchingSound: {fileID: 0}
+  dingSound: {fileID: 0}
 --- !u!195 &4766536257148378978
 NavMeshAgent:
   m_ObjectHideFlags: 0

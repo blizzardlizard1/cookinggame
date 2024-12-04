@@ -8,8 +8,12 @@ public class PlayerController : MonoBehaviour
     public GameObject handObject; // Reference to the player's hand object where the menu item will be placed
     public GameObject[] menuItems; // Array of menu items (Small, Medium, Large prefabs)
     public OrderingManager orderingManager; // Reference to the ordering system
+    public AudioClip footstepSound; // Footstep sound clip
+    public float footstepInterval = 0.5f; // Interval between footstep sounds in seconds
+
     private Rigidbody rb;
     private Animator animator;
+    private AudioSource audioSource;
     private Vector3 movement;
     private bool isMenuActive = false; // To track if the menu is currently displayed
     private string servingStationTag = "Serving Station"; // Tag or name to identify the serving station
@@ -18,12 +22,27 @@ public class PlayerController : MonoBehaviour
     private bool hasExitedZone = true; // Track if the player has exited the serving zone
     private float menuCooldown = 1f; // Cooldown duration in seconds
     private float lastMenuTime = -1f; // Time the menu was last opened
+    private float lastFootstepTime = -1f; // Last time a footstep sound was played
+
+    private int FoodType;
+    private GameObject FoodItemOnHand;
 
     void Start()
     {
         // Get references to the Rigidbody and Animator components
         rb = GetComponent<Rigidbody>();
         animator = GetComponent<Animator>();
+
+        // Get or add the AudioSource component
+        audioSource = GetComponent<AudioSource>();
+        if (audioSource == null)
+        {
+            audioSource = gameObject.AddComponent<AudioSource>();
+        }
+
+        // Set the footstep sound clip
+        audioSource.clip = footstepSound;
+        audioSource.loop = false; // Ensure the sound does not loop
     }
 
     void Update()
@@ -40,6 +59,22 @@ public class PlayerController : MonoBehaviour
 
         // Set animator parameter for walking
         animator.SetBool("IsWalking", isWalking);
+
+        // Play or stop footstep sounds based on walking state
+        if (isWalking)
+        {
+            if (!audioSource.isPlaying && Time.time > lastFootstepTime + footstepInterval)
+            {
+                PlayFootstepSound();
+            }
+        }
+        else
+        {
+            if (audioSource.isPlaying)
+            {
+                audioSource.Stop();
+            }
+        }
     }
 
     void FixedUpdate()
@@ -118,16 +153,13 @@ public class PlayerController : MonoBehaviour
         }
     }
 
-    private int FoodType;
-
-    private GameObject FoodItemOnHand;
     private void PlaceMenuItem(int index)
     {
         if (index >= 0 && index < menuItems.Length)
         {
             FoodType = index;
 
-            if (FoodItemOnHand!=null) 
+            if (FoodItemOnHand != null)
             {
                 Destroy(FoodItemOnHand);
             }
@@ -143,7 +175,6 @@ public class PlayerController : MonoBehaviour
         isMenuActive = false; // Deactivate the menu after selection
     }
 
-    // modified for function fix
     private void DeliverOrder(GameObject npc)
     {
         // Notify the ordering system
@@ -153,18 +184,24 @@ public class PlayerController : MonoBehaviour
         }
 
         CustomerController customer = npc.GetComponent<CustomerController>();
-        if (customer != null) 
+        if (customer != null)
         {
-            if (customer.GetFood(FoodType)) 
+            if (customer.GetFood(FoodType))
             {
                 // Clear the player's hand
-                Destroy(FoodItemOnHand);              
+                Destroy(FoodItemOnHand);
                 isHoldingFood = false; // No longer holding food
                 Debug.Log("Order delivered to NPC: " + npc.name);
             }
         }
     }
+
+    private void PlayFootstepSound()
+    {
+        if (audioSource != null && footstepSound != null)
+        {
+            audioSource.Play();
+            lastFootstepTime = Time.time; // Update the last played time
+        }
+    }
 }
-
-
-

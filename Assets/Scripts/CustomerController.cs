@@ -10,7 +10,7 @@ using UnityEngine.UI;
 
 public class CustomerController : MonoBehaviour
 {
-    //Use NavMesh for PathFinding System
+    // Use NavMesh for PathFinding System
     private NavMeshAgent agent;
     private Animator animator;
     
@@ -33,21 +33,32 @@ public class CustomerController : MonoBehaviour
     public float currentPatience;
     
     // Customer Walking
-    public float customerLocation; //Need to connect to RestaurantManager.table
+    public float customerLocation; // Need to connect to RestaurantManager.table
 
     public Transform TablePos;
     public int TableIndex;
     // Customer Ordering 
-    // public Order currentOrder;
     public Image ShowCustomerStatusImage;
     public List<Sprite> CustomerStatusImage;
+
+    // Audio
+    public AudioClip munchingSound; // Sound for eating
+    public AudioClip dingSound; // Sound for leaving
+    private AudioSource audioSource;
 
     void Start()
     {
         basePatience = LevelManager.Instance.CustomerWaitingTime;
          
         currentPatience = basePatience;
-        animator =this.GetComponent<Animator>();
+        animator = this.GetComponent<Animator>();
+        
+        // Get or add an AudioSource component
+        audioSource = GetComponent<AudioSource>();
+        if (audioSource == null)
+        {
+            audioSource = gameObject.AddComponent<AudioSource>();
+        }
     }
     
     void Update()
@@ -71,13 +82,13 @@ public class CustomerController : MonoBehaviour
 
     public void LeaveRestaurant() 
     {
-       Destroy(gameObject);
+        Destroy(gameObject);
     }
+
     public void UpdateState()
     {
         switch (customerState)
         {
-            //case CustomerState.WaitingForSeat
             case CustomerState.Walking:
                 StartCoroutine(MoveTo());
                 break;
@@ -88,7 +99,7 @@ public class CustomerController : MonoBehaviour
                 gameObject.transform.position = TablePos.position;
                 gameObject.transform.rotation = TablePos.rotation;
 
-             customerState = CustomerState.OrderingFood;
+                customerState = CustomerState.OrderingFood;
                 ThinkOrdering();
                 Invoke("UpdateState", 5f);
                 break;
@@ -99,19 +110,19 @@ public class CustomerController : MonoBehaviour
                 ShowCustomerStatusImage.sprite = CustomerStatusImage[1];
                 break;
             case CustomerState.Eating:
-                OrderingManager.Instance.CalculateTip(newOrder,currentPatience - basePatience);
+                PlaySound(munchingSound); // Play munching sound
+                OrderingManager.Instance.CalculateTip(newOrder, currentPatience - basePatience);
                 customerState = CustomerState.Leaving;
                 ShowCustomerStatusImage.sprite = CustomerStatusImage[2];
-                Invoke("UpdateState",5f);
+                Invoke("UpdateState", 5f);
                 break;
             case CustomerState.PreLeaving:
-                //RestaurantManager.Instance.ResetTableState(newOrder.TableID);
-                //OrderingManager.Instance.FinishOrder(newOrder);
                 customerState = CustomerState.Leaving;
-                Invoke("UpdateState",5f);
+                Invoke("UpdateState", 5f);
                 ShowCustomerStatusImage.sprite = CustomerStatusImage[3];
                 break;
             case CustomerState.Leaving:
+                PlaySound(dingSound); // Play ding sound
                 RestaurantManager.Instance.ResetTableState(newOrder.TableID);
                 OrderingManager.Instance.FinishOrder(newOrder);
                 LeaveRestaurant();
@@ -123,7 +134,6 @@ public class CustomerController : MonoBehaviour
     {
         if (newOrder.OrderType == OrderType) 
         {
-
             customerState = CustomerState.Eating;
             UpdateState();
             return true;
@@ -143,7 +153,7 @@ public class CustomerController : MonoBehaviour
 
         newOrder = new OrderingManager.OrderItem();
         newOrder.OrderType = orderType;
-        newOrder.Price= orderType == 0 ?10 : orderType == 1 ? 20 : 40;
+        newOrder.Price = orderType == 0 ? 10 : orderType == 1 ? 20 : 40;
         newOrder.OrderTime = OrderTime;
         newOrder.TableID = TableIndex;
     }
@@ -155,9 +165,9 @@ public class CustomerController : MonoBehaviour
         UpdateState();
     }
 
-   IEnumerator MoveTo()
+    IEnumerator MoveTo()
     {
-        if (agent== null) 
+        if (agent == null) 
         {
             agent = this.GetComponent<NavMeshAgent>();
         }
@@ -175,9 +185,17 @@ public class CustomerController : MonoBehaviour
             }
 
             agent.SetDestination(TablePos.position);
-            yield return new  WaitForSeconds(1);
+            yield return new WaitForSeconds(1);
         }
         customerState = CustomerState.Seated;
         UpdateState();
+    }
+
+    private void PlaySound(AudioClip clip)
+    {
+        if (audioSource != null && clip != null)
+        {
+            audioSource.PlayOneShot(clip);
+        }
     }
 }
