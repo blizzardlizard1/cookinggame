@@ -2907,7 +2907,7 @@ MonoBehaviour:
   - {fileID: 4893354191326654021, guid: 7e1a4aec3d6bad54394dd7f68138772c, type: 3}
   orderingManager: {fileID: 1883230145}
   footstepSound: {fileID: 8300000, guid: 35120659130443d4b83aca912e260531, type: 3}
-  footstepInterval: 4
+  footstepInterval: 1
 --- !u!95 &2145920794
 Animator:
   serializedVersion: 5
@@ -2976,12 +2976,12 @@ AudioSource:
   m_audioClip: {fileID: 8300000, guid: 35120659130443d4b83aca912e260531, type: 3}
   m_PlayOnAwake: 1
   m_Volume: 1
-  m_Pitch: 1
+  m_Pitch: 1.94
   Loop: 0
   Mute: 0
   Spatialize: 0
   SpatializePostEffects: 0
-  Priority: 128
+  Priority: 84
   DopplerLevel: 1
   MinDistance: 1
   MaxDistance: 500

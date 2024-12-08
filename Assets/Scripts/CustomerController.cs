@@ -49,17 +49,20 @@ public class CustomerController : MonoBehaviour
     void Start()
     {
         basePatience = LevelManager.Instance.CustomerWaitingTime;
-         
         currentPatience = basePatience;
         animator = this.GetComponent<Animator>();
-        
+    
         // Get or add an AudioSource component
         audioSource = GetComponent<AudioSource>();
         if (audioSource == null)
         {
             audioSource = gameObject.AddComponent<AudioSource>();
         }
+
+        // Play ding sound when the customer is spawned
+        PlaySound(dingSound);
     }
+
     
     void Update()
     {

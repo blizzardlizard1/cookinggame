@@ -11,11 +11,11 @@ public class OrderImage : MonoBehaviour
     
     public void ShowOrder(OrderingManager.OrderItem Item)
     {
-        TableID.text = $"TableID: {Item.TableID.ToString()}";
+        TableID.text = $"Table: {Item.TableID.ToString()}";
 
         string tempType = Item.OrderType == 0 ? "Small" : Item.OrderType == 1 ? "Medium" : "Large";
 
-        OrderType.text = $"OrderType: {tempType}";
+        OrderType.text = $"Order Size: {tempType}";
 
         Price.text = $"Price: {Item.Price}";
     }

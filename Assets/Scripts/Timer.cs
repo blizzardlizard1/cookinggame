@@ -50,7 +50,7 @@ public class Timer : MonoBehaviour
 
     void OnTimerEnd()
     {
-        Time.timeScale = 0f; 
+        Time.timeScale = 0f;
         EndScenes.SetActive(true);
     }
 }
